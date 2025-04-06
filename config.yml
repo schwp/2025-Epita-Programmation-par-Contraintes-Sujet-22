@@ -1,0 +1,54 @@
+# Configuration des ressources cloud
+---
+servers:
+  - id: 0
+    cpu_capacity: 16
+    ram_capacity: 64
+    location: "rack-1"
+  
+  - id: 1
+    cpu_capacity: 24
+    ram_capacity: 96
+    location: "rack-1"
+  
+  - id: 2
+    cpu_capacity: 32
+    ram_capacity: 128
+    location: "rack-2"
+
+vms:
+  - id: 0
+    cpu: 4
+    ram: 16
+    type: "web-server"
+    priority: "high"
+    
+  - id: 1
+    cpu: 4
+    ram: 16
+    type: "web-server"
+    priority: "high"
+    
+  - id: 2
+    cpu: 8
+    ram: 32
+    type: "database"
+    priority: "critical"
+    
+  - id: 3
+    cpu: 2
+    ram: 8
+    type: "monitoring"
+    priority: "medium"
+
+# Contraintes d'affinité et anti-affinité
+constraints:
+  affinity:
+    - group: "web-tier"
+      vms: [0, 1]
+      description: "Les VM web doivent être sur le même serveur"
+      
+  anti_affinity:
+    - group: "redundancy"
+      vms: [2, 3]
+      description: "La base de données et le monitoring doivent être sur des serveurs différents"
