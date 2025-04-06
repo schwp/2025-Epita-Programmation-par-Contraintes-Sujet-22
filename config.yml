@@ -1,4 +1,3 @@
-# Configuration des ressources cloud
 ---
 servers:
   - id: 0
@@ -41,14 +40,11 @@ vms:
     type: "monitoring"
     priority: "medium"
 
-# Contraintes d'affinité et anti-affinité
 constraints:
   affinity:
     - group: "web-tier"
       vms: [0, 1]
-      description: "Les VM web doivent être sur le même serveur"
       
   anti_affinity:
     - group: "redundancy"
       vms: [2, 3]
-      description: "La base de données et le monitoring doivent être sur des serveurs différents"
