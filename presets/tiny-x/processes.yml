@@ -1,0 +1,88 @@
+processes:
+  - name: "graphana"
+    ram: 2
+    cpu: 3  # Adding explicit CPU core requirement
+    disk: 3
+    # 20mb
+    bandwidth: 0.02
+    os: "ArchLinux"
+    location-policy: single
+    location:
+    - Island
+    - Germany
+    - France
+    replicas: 2
+    scope: "Monitoring"
+    critical: false
+    # New affinity feature
+    affinity:
+    non-affinity:
+    - graphana
+
+  - name: "db-monitoring"
+    ram: 2
+    cpu: 3  # Adding explicit CPU core requirement
+    disk: 2
+    # 20mb
+    bandwidth: 2
+    os: "ArchLinux"
+    location-policy: single
+    location:
+    - Island
+    replicas: 1
+    scope: null
+    critical: false
+    affinity:
+    non-affinity:
+
+  - name: "ahaa"
+    ram: 10
+    cpu: 17  # Adding explicit CPU core requirement
+    disk: 60
+    # 20mb
+    bandwidth: 2
+    os: "Macos"
+    location-policy: single
+    location:
+    - USA
+    replicas: 1
+    scope: null
+    critical: false
+    affinity:
+    non-affinity:
+
+  - name: "pareil_2"
+    ram: 1
+    cpu: 1 # Adding explicit CPU core requirement
+    disk: 60
+    # 20mb
+    bandwidth: 2
+    os: "Macos"
+    location-policy: single
+    location:
+    - China
+    - USA
+    replicas: 1
+    scope: null
+    critical: false
+    affinity:
+    non-affinity:
+    - pareil_3
+
+  - name: "pareil_3"
+    ram: 1
+    cpu: 1 # Adding explicit CPU core requirement
+    disk: 60
+    # 20mb
+    bandwidth: 2
+    os: "Macos"
+    location-policy: single
+    location:
+    - China
+    - USA
+    replicas: 1
+    scope: null
+    critical: false
+    affinity:
+    non-affinity:
+ 

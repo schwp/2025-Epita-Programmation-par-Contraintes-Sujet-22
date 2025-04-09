@@ -1,0 +1,22 @@
+constraints:
+  max-ram-usage-per-server: 75%
+  max-cpu-usage-per-server: 80%
+  max-disk-usage-per-server: 50%
+  max-network-bandwidth-per-server: 80%
+  servers-for-redundancy: 0
+  max-processes-per-server: 7
+  isolate-critical-processes: true
+  prioritize-green-energy: true
+  # watts
+  max-energy-consumption-per-server: 400
+  # Choose from: round-robin, bin-packing, weighted-capacity
+  load-balancing-strategy: round-robin 
+  # Changed from percentage to direct dollar value
+  max-daily-cost: 900
+  # Set the priority order for optimization (highest first)
+  # Valid options: load-balancing, green-energy, cost
+  optimization-priorities:
+    - load-balancing
+    - green-energy
+    - cost
+

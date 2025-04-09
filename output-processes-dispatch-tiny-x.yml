@@ -1,0 +1,27 @@
+servers:
+- name: island_east
+  processes:
+  - name: graphana
+    replica: 1
+    location: Island
+- name: island_west
+  processes:
+  - name: graphana
+    replica: 2
+    location: Island
+  - name: db-monitoring
+    replica: 1
+    location: Island
+- name: usa_east
+  processes:
+  - name: ahaa
+    replica: 1
+    location: USA
+  - name: pareil_2
+    replica: 1
+    location: USA
+- name: china_east
+  processes:
+  - name: pareil_3
+    replica: 1
+    location: China

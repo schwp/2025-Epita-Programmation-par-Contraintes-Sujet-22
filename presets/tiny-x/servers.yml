@@ -1,0 +1,61 @@
+servers:
+  - name: "island_central"
+    ram: 16
+    cpu: 32
+    disk: 1000
+    bandwidth: 10
+    geographical-location: "Island"
+    process-scope:
+    - "Database"
+    - "Monitoring"
+    os: "ArchLinux"
+    energy-cost: 0.09
+  - name: "island_west"
+    ram: 16
+    cpu: 32
+    disk: 1000
+    bandwidth: 10
+    green-enegery: true
+    geographical-location: "Island"
+    process-scope:
+    - "Database"
+    - "Monitoring"
+    os: "ArchLinux"
+    energy-cost: 0.13
+  - name: "island_east"
+    ram: 16
+    cpu: 32
+    disk: 1000
+    bandwidth: 10
+    green-enegery: true
+    geographical-location: "Island"
+    process-scope:
+    - "Database"
+    - "Monitoring"
+    os: "ArchLinux"
+    energy-cost: 0.19
+
+  - name: "china_east"
+    ram: 16
+    cpu: 24
+    disk: 800
+    bandwidth: 10
+    green-enegery: false
+    geographical-location: "China"
+    process-scope: null
+    os: null
+    energy-cost: 0.4
+
+  - name: "usa_east"
+    ram: 64
+    cpu: 90
+    disk: 8000
+    bandwidth: 20
+    green-enegery: false
+    geographical-location: "USA"
+    process-scope: null
+    os: null
+    energy-cost: 0.5
+
+
+    
