@@ -15,7 +15,7 @@ servers:
     cpu: 32
     disk: 1000
     bandwidth: 10
-    green-enegery: true
+    green-energy: true
     geographical-location: "Island"
     process-scope:
     - "Database"
@@ -27,7 +27,7 @@ servers:
     cpu: 32
     disk: 1000
     bandwidth: 10
-    green-enegery: true
+    green-energy: true
     geographical-location: "Island"
     process-scope:
     - "Database"
@@ -40,7 +40,7 @@ servers:
     cpu: 24
     disk: 800
     bandwidth: 10
-    green-enegery: false
+    green-energy: false
     geographical-location: "China"
     process-scope: null
     os: null
@@ -51,7 +51,7 @@ servers:
     cpu: 90
     disk: 8000
     bandwidth: 20
-    green-enegery: false
+    green-energy: false
     geographical-location: "USA"
     process-scope: null
     os: null

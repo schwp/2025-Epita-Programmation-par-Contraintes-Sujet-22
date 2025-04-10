@@ -35,13 +35,11 @@ def AddAbsoluteValueConstraint(model, variable, abs_variable):
     # For optimization purposes, also push it to be as small as possible
     model.Add(abs_variable <= max(abs(model.Max(variable)), abs(model.Min(variable))))
 
-def main():
+def run_vm_scheduling(presets_path: str, preset: str):
     try:
         # 1. Load configuration files
         try:
-            # Allow command-line arguments to specify preset directory
-            preset_dir = sys.argv[1] if len(sys.argv) > 1 else './presets/tiny-x'
-            
+            preset_dir = os.path.join(presets_path, preset)
             print(f"Loading configuration from {preset_dir}")
             servers_file = f'{preset_dir}/servers.yml'
             processes_file = f'{preset_dir}/processes.yml'
@@ -599,7 +597,7 @@ def main():
                 for r in range(processes[p_idx].get('replicas', 1)):
                     for s_idx, server in enumerate(servers):
                         # Add a bonus for assigning to green energy servers
-                        if server.get('green-enegery', False):  # Note: This is the spelling in the YAML
+                        if server.get('green-energy', False):  # Note: This is the spelling in the YAML
                             objective_terms.append(assignment[p_idx][r][s_idx] * weights['green-energy'])  # Use configured weight
         
         # Apply energy cost optimization (if prioritized)
@@ -644,6 +642,12 @@ def main():
 
         # 7. Output the results
         if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
+
+            result = {
+                "processes": [],
+                "servers": {},
+            }
+
             print("\n===== 🚀 OPTIMAL PROCESS ALLOCATION 🚀 =====\n")
             
             # Calculate and display resource utilization
@@ -653,6 +657,10 @@ def main():
             
             # Display process assignments
             for p_idx, process in enumerate(processes):
+                result_process = {}
+                result_process['name'] = process['name']
+                result_process['location-policy'] = process.get('location-policy', 'none')
+
                 print(f"📦 Process: {process['name']} (Policy: {process.get('location-policy', 'none')})")
                 
                 location_policy = process.get('location-policy')
@@ -691,8 +699,17 @@ def main():
                 # Display replicas grouped by location
                 for location, replicas in replicas_by_location.items():
                     print(f"  📍 Location: {location}")
+                    result_process['location'] = location
+                    result_process['replicas'] = []
                     for replica_num, server_name in replicas:
                         print(f"    🔄 Replica {replica_num} → Server: {server_name}")
+                        result_process['replicas'].append({
+                            'replica': replica_num,
+                            'server': server_name
+                        })
+                
+                result['processes'].append(result_process)
+            
 
             # Display server usage information
             print("\n===== 🖥️  SERVER UTILIZATION 🖥️  =====\n")
@@ -700,6 +717,27 @@ def main():
             for s_idx, server in enumerate(servers):
                 print(f"🏢 Server: {server['name']} ({server.get('geographical-location')})")
                 usage = server_resources[s_idx]
+                server_name = server['name']
+                result_server = {
+                    'name': server_name,
+                    'location': server['geographical-location'],
+                    'green': True if server.get('green-energy') else False,
+                    'ram_used': usage['ram'],
+                    'ram_total': server['ram'],
+                    'ram_percent': round(usage['ram'] / server['ram'] * 100, 2),
+                    'cpu_used': usage['cpu'],
+                    'cpu_total': server['cpu'],
+                    'cpu_percent': round(usage['cpu'] / server['cpu'] * 100, 2),
+                    'disk_used': usage['disk'],
+                    'disk_total': server['disk'],
+                    'disk_percent': round(usage['disk'] / server['disk'] * 100, 2),
+                    'bandwidth_used': usage['bandwidth'],
+                    'bandwidth_total': server['bandwidth'],
+                    'bandwidth_percent': round(usage['bandwidth'] / server['bandwidth'] * 100, 2),
+                    'process_count': usage['processes'],
+                }
+                
+                
                 
                 # Remove this calculation since we now directly accumulate actual CPU usage
                 # ram_ratio = usage['ram'] / server['ram']
@@ -728,11 +766,19 @@ def main():
                 print(f"  🧩 Processes: {usage['processes']}")
                 if usage['energy']:
                     print(f"  ⚡ Daily Energy Consumption: {usage['energy']:.2f} kWh")
-                if server.get('green-enegery'):
+                if server.get('green-energy'):
                     print("  🍃 Green Energy")
                 if usage['cost']:
                     print(f"  💰 Daily Energy Cost: ${usage['cost']:.2f}")
                 print()
+
+                if usage['energy']:
+                    print('dsajlkdlasdjlk')
+                    result_server['energy'] = usage['energy']
+                if usage['cost']:
+                    result_server['cost'] = round(usage['cost'], 2)
+
+                result['servers'][server_name] = result_server
                 
             if total_cost > 0:
                 print(f"\n💲 Total Daily Energy Cost: ${total_cost:.2f}")
@@ -787,7 +833,7 @@ def main():
             print(f"⚙️  Total CPU usage: {total_cpu:.1f}/{total_cpu_capacity} cores ({(total_cpu/total_cpu_capacity)*100:.1f}%)")
             
             # Energy statistics
-            green_servers = sum(1 for server in servers if server.get('green-enegery', False) and 
+            green_servers = sum(1 for server in servers if server.get('green-energy', False) and 
                                server_resources[servers.index(server)]['processes'] > 0)
             if green_servers > 0:
                 print(f"🍃 Using {green_servers} green energy servers!")
@@ -799,6 +845,8 @@ def main():
                 print("\n🏆 Found optimal solution! 🎉")
             else:
                 print("\n🎯 Found feasible solution (may not be optimal) 👍")
+
+            return result
                 
         else:
             print("❌ No feasible solution found. You may need to adjust your constraints. 😞")
@@ -808,5 +856,4 @@ def main():
         import traceback
         traceback.print_exc()
 
-if __name__ == "__main__":
-    main()
+    return None

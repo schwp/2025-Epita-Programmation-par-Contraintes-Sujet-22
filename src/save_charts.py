@@ -1,166 +1,28 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 import yaml
-import argparse
-import subprocess
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import defaultdict
-import re
 
-def parse_process_allocation(output_text=None, yaml_file=None):
-    """
-    Parse process allocation data either from main.py output text or from a YAML file.
-    Returns server resource data and process allocation information.
-    """
-    if yaml_file and os.path.exists(yaml_file):
-        # Read from YAML file
-        with open(yaml_file, 'r') as f:
-            data = yaml.safe_load(f)
-        
-        # TODO: Process the YAML data to extract server resources
-        # This is a placeholder and would need to be updated based on the exact YAML structure
-        return {}, data
+def split_result(result: dict):
     
-    if not output_text:
-        raise ValueError("Either output_text or yaml_file must be provided")
-    
-    # Dictionary to store server -> resources mapping
-    server_resources = {}
-    process_allocation = defaultdict(list)
-    
-    # Regular expressions to extract information
-    process_pattern = r"📦 Process: (.*?) \(Policy: (.*?)\)"
-    location_pattern = r"  📍 Location: (.*)"
-    replica_pattern = r"    🔄 Replica (\d+) → Server: (.*)"
-    server_pattern = r"🏢 Server: (.*?) \((.*?)\)"
-    ram_pattern = r"  💾 RAM: (.*?)/(.*?) GB \((.*?)%\)"
-    cpu_pattern = r"  ⚙️  CPU: (.*?)/(.*?) cores \((.*?)%\)"
-    disk_pattern = r"  💿 Disk: (.*?)/(.*?) GB \((.*?)%\)"
-    bandwidth_pattern = r"  🌐 Bandwidth: (.*?)/(.*?) GB/s \((.*?)%\)"
-    processes_pattern = r"  🧩 Processes: (\d+)"
-    energy_pattern = r"  ⚡ Daily Energy Consumption: (.*?) kWh"
-    cost_pattern = r"  💰 Daily Energy Cost: \$(.*)"
-    green_pattern = r"  🍃 Green Energy"
-    
-    current_process = None
-    current_location = None
-    current_server = None
-    
-    # Parse the output line by line
-    lines = output_text.split('\n')
-    for i, line in enumerate(lines):
-        # Process information
-        process_match = re.search(process_pattern, line)
-        if process_match:
-            current_process = process_match.group(1)
-            continue
-            
-        location_match = re.search(location_pattern, line)
-        if location_match and current_process:
-            current_location = location_match.group(1)
-            continue
-            
-        replica_match = re.search(replica_pattern, line)
-        if replica_match and current_process and current_location:
-            replica_num = replica_match.group(1)
-            server_name = replica_match.group(2)
-            
-            # Add this process to the server's list
-            process_allocation[server_name].append({
-                "name": current_process,
-                "replica": int(replica_num),
-                "location": current_location
-            })
-            continue
-        
-        # Server information
-        server_match = re.search(server_pattern, line)
-        if server_match:
-            current_server = server_match.group(1)
-            server_location = server_match.group(2)
-            server_resources[current_server] = {
-                "name": current_server,
-                "location": server_location,
-                "green": False  # Default
+    server_to_processes = defaultdict(list)
+    processes = result['processes']
+
+    for process in processes:
+        for replica in process['replicas']:
+            server_name = replica['server']
+            process_info = {
+                'name': process['name'],
+                'replica': replica['replica'],
+                'location': process['location']
             }
-            continue
-            
-        if current_server:
-            # RAM information
-            ram_match = re.search(ram_pattern, line)
-            if ram_match:
-                server_resources[current_server]["ram_used"] = float(ram_match.group(1))
-                server_resources[current_server]["ram_total"] = float(ram_match.group(2))
-                server_resources[current_server]["ram_percent"] = float(ram_match.group(3))
-                continue
-                
-            # CPU information
-            cpu_match = re.search(cpu_pattern, line)
-            if cpu_match:
-                server_resources[current_server]["cpu_used"] = float(cpu_match.group(1))
-                server_resources[current_server]["cpu_total"] = float(cpu_match.group(2))
-                server_resources[current_server]["cpu_percent"] = float(cpu_match.group(3))
-                continue
-                
-            # Disk information
-            disk_match = re.search(disk_pattern, line)
-            if disk_match:
-                server_resources[current_server]["disk_used"] = float(disk_match.group(1))
-                server_resources[current_server]["disk_total"] = float(disk_match.group(2))
-                server_resources[current_server]["disk_percent"] = float(disk_match.group(3))
-                continue
-                
-            # Bandwidth information
-            bandwidth_match = re.search(bandwidth_pattern, line)
-            if bandwidth_match:
-                server_resources[current_server]["bandwidth_used"] = float(bandwidth_match.group(1))
-                server_resources[current_server]["bandwidth_total"] = float(bandwidth_match.group(2))
-                server_resources[current_server]["bandwidth_percent"] = float(bandwidth_match.group(3))
-                continue
-                
-            # Process count
-            processes_match = re.search(processes_pattern, line)
-            if processes_match:
-                server_resources[current_server]["process_count"] = int(processes_match.group(1))
-                continue
-                
-            # Energy consumption
-            energy_match = re.search(energy_pattern, line)
-            if energy_match:
-                server_resources[current_server]["energy"] = float(energy_match.group(1))
-                continue
-                
-            # Cost
-            cost_match = re.search(cost_pattern, line)
-            if cost_match:
-                server_resources[current_server]["cost"] = float(cost_match.group(1))
-                continue
-                
-            # Green energy
-            if green_pattern in line:
-                server_resources[current_server]["green"] = True
-                
-    return server_resources, process_allocation
 
-def run_main_script(preset_name):
-    """Run the main.py script with the specified preset and capture its output."""
-    preset_path = f"./presets/{preset_name}"
-    
-    try:
-        result = subprocess.run(
-            [sys.executable, 'main.py', preset_path],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        return result.stdout
-    except subprocess.CalledProcessError as e:
-        print(f"❌ Error running main.py: {e}")
-        print(f"Error output: {e.stderr}")
-        sys.exit(1)
+            server_to_processes[server_name].append(process_info)
+
+    return result['servers'], server_to_processes
 
 def load_constraints(preset_name):
     """Load constraints from the constraints YAML file"""
@@ -302,7 +164,7 @@ def generate_energy_cost_chart(server_resources, output_dir, preset_name):
     
     # Add a second y-axis for cost
     ax2 = ax1.twinx()
-    ax2.plot(servers, cost_values, 'ro-', marker='D', linewidth=2)
+    ax2.plot(servers, cost_values, 'ro-', linewidth=2)
     ax2.set_ylabel('Cost ($)', color='r')
     ax2.tick_params(axis='y', labelcolor='r')
     
@@ -424,7 +286,7 @@ def generate_overall_resource_chart(server_resources, output_dir, preset_name):
     
     return output_path
 
-def generate_summary_dashboard(chart_files, output_dir, preset_name):
+def generate_summary_dashboard(chart_files, output_dir, preset_name, show_charts):
     """Generate a combined dashboard with all charts."""
     from matplotlib.gridspec import GridSpec
     
@@ -488,22 +350,15 @@ def generate_summary_dashboard(chart_files, output_dir, preset_name):
     
     # Save the dashboard
     output_path = os.path.join(output_dir, f"dashboard_{preset_name}.png")
+    if show_charts:
+        plt.show()
     plt.savefig(output_path, bbox_inches='tight', dpi=150)
     plt.close()
     
     return output_path
 
-def main():
+def save_charts(vm_scheduling_result: dict, output_dir: str, preset_name: str, show_charts: bool = False):
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description='Generate charts for process allocation.')
-    parser.add_argument('preset', help='Preset name to use (e.g., tiny-x)')
-    parser.add_argument('--output-dir', default='./charts', help='Directory to write chart files')
-    parser.add_argument('--yaml-file', help='Path to YAML output file (if already generated)')
-    args = parser.parse_args()
-    
-    preset_name = args.preset
-    output_dir = args.output_dir
-    yaml_file = args.yaml_file
     
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
@@ -515,13 +370,8 @@ def main():
     print(f"📏 Loaded constraints for maximum resource usage visualization")
     
     # Get allocation data
-    if yaml_file:
-        print(f"Reading allocation data from {yaml_file}")
-        server_resources, process_allocation = parse_process_allocation(yaml_file=yaml_file)
-    else:
-        print("Running allocation and parsing output...")
-        output_text = run_main_script(preset_name)
-        server_resources, process_allocation = parse_process_allocation(output_text=output_text)
+    # output_text = run_main_script(preset_name)
+    server_resources, process_allocation = split_result(vm_scheduling_result)
     
     if not server_resources:
         print("⚠️ Warning: No server resource data found.")
@@ -557,11 +407,9 @@ def main():
         server_resources, output_dir, preset_name)
     
     print("Generating summary dashboard with all charts...")
-    dashboard_path = generate_summary_dashboard(chart_files, output_dir, preset_name)
+    dashboard_path = generate_summary_dashboard(chart_files, output_dir, preset_name, show_charts)
     
     print(f"✅ All charts generated successfully!")
     print(f"📊 Individual charts saved to {output_dir}")
     print(f"🖼️ Summary dashboard saved to {dashboard_path}")
 
-if __name__ == "__main__":
-    main()
