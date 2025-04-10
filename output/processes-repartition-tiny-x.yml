@@ -14,14 +14,14 @@ servers:
     location: Island
 - name: usa_east
   processes:
-  - name: ahaa
-    replica: 1
-    location: USA
-  - name: pareil_2
+  - name: nginx
     replica: 1
     location: USA
 - name: china_east
   processes:
-  - name: pareil_3
+  - name: postgresql
+    replica: 1
+    location: China
+  - name: mongodb
     replica: 1
     location: China

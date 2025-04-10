@@ -35,7 +35,7 @@ processes:
     affinity:
     non-affinity:
 
-  - name: "ahaa"
+  - name: "nginx"
     ram: 10
     cpu: 17  # Adding explicit CPU core requirement
     disk: 60
@@ -51,7 +51,7 @@ processes:
     affinity:
     non-affinity:
 
-  - name: "pareil_2"
+  - name: "postgresql"
     ram: 1
     cpu: 1 # Adding explicit CPU core requirement
     disk: 60
@@ -69,7 +69,7 @@ processes:
     non-affinity:
     - pareil_3
 
-  - name: "pareil_3"
+  - name: "mongodb"
     ram: 1
     cpu: 1 # Adding explicit CPU core requirement
     disk: 60
