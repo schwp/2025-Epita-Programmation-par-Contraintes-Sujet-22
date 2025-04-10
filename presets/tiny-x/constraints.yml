@@ -7,7 +7,6 @@ constraints:
   max-processes-per-server: 7
   isolate-critical-processes: true
   prioritize-green-energy: true
-  # watts
   max-energy-consumption-per-server: 400
   # Choose from: round-robin, bin-packing, weighted-capacity
   load-balancing-strategy: round-robin 
